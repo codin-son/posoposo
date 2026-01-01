@@ -102,7 +102,7 @@ CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_menu_items_category ON menu_items(category_id);
 
 INSERT INTO users (username, password, role, full_name, phone)
-VALUES ('admin', '$2a$10$X7UrE2J5f6Z3n8P5L4R6a.J8kM5nQ3rT1vW9xY2zA0bC4dE6fG8hI', 'superadmin', 'System Administrator', '0123456789');
+VALUES ('admin', '$2b$10$p2REe6HkcrZOQrLO09PFwenRJbX.p7iBFIbtKl29uRFJyFwJ18Hc2', 'superadmin', 'System Administrator', '0123456789');
 
 INSERT INTO menu_categories (name, display_order) VALUES
 ('Appetizers', 1),
