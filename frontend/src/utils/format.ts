@@ -1,5 +1,12 @@
-export function formatCurrency(amount: number): string {
-  return `RM ${amount.toFixed(2)}`;
+export function formatCurrency(amount: number | string | undefined): string {
+  if (amount === undefined || amount === null || amount === '') {
+    return 'RM 0.00';
+  }
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(num)) {
+    return 'RM 0.00';
+  }
+  return `RM ${num.toFixed(2)}`;
 }
 
 export function formatDate(date: string | Date): string {

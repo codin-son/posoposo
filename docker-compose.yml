@@ -27,7 +27,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:postgres123@db:5432/restaurant_pos
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-kembali}
       PORT: 3001
       NODE_ENV: production
       BACKUP_RETENTION_DAYS: 30

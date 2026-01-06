@@ -56,11 +56,13 @@ CREATE TABLE orders (
     discount_amount DECIMAL(10, 2) DEFAULT 0,
     sst_amount DECIMAL(10, 2) DEFAULT 0,
     total_amount DECIMAL(10, 2) NOT NULL,
-    payment_received DECIMAL(10, 2) NOT NULL,
-    change_given DECIMAL(10, 2) NOT NULL,
-    payment_method VARCHAR(50) DEFAULT 'cash',
+    payment_received DECIMAL(10, 2),           -- remove NOT NULL
+    change_given DECIMAL(10, 2),               -- remove NOT NULL
+    payment_method VARCHAR(50) DEFAULT 'cash', -- can be NULL at creation
     notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    status TEXT NOT NULL DEFAULT 'IN_PROGRESS',
+    paid_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE order_items (

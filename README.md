@@ -1,0 +1,1 @@
+cd /home/ijud/Desktop/project/personal/restaurant-pos/backend && node -e "const bcrypt = require('bcryptjs'); console.log(bcrypt.hashSync('admin123', 10));"

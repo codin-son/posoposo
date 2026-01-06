@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Cashier from './pages/Cashier';
+import Orders from './pages/Orders';
 import Analytics from './pages/Analytics';
 import MenuManagement from './pages/MenuManagement';
 import Users from './pages/Users';
@@ -22,6 +23,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Cashier />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Orders />
                 </Layout>
               </ProtectedRoute>
             }

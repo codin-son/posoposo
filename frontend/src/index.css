@@ -1,21 +1,332 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+@plugin "daisyui/theme" {
+  name: "postheme";
+  default: true;
+  --color-primary: #2563eb;
+  --color-primary-content: #ffffff;
+  --color-secondary: #7c3aed;
+  --color-secondary-content: #ffffff;
+  --color-accent: #0891b2;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1f2937;
+  --color-neutral-content: #f3f4f6;
+  --color-base-100: #ffffff;
+  --color-base-200: #f3f4f6;
+  --color-base-300: #e5e7eb;
+  --color-base-content: #1f2937;
+  --color-info: #0ea5e9;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --radius-btn: 0.75rem;
+  --radius-box: 1rem;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 16px;
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
 }
 
+/* Touch-friendly targets */
 .touch-target {
-  min-height: 44px;
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Larger touch targets for tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .btn {
+    min-height: 52px;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  
+  .btn-sm {
+    min-height: 44px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .btn-lg {
+    min-height: 60px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    font-size: 1.125rem;
+  }
+  
+  .btn-circle {
+    min-width: 48px;
+    min-height: 48px;
+  }
+  
+  .btn-circle.btn-sm {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .input, .select, .textarea {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+  
+  .input-lg {
+    min-height: 60px;
+    font-size: 1.25rem;
+  }
+  
+  .badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .badge-lg {
+    padding: 0.625rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .modal-box {
+    max-width: 90vw;
+    max-height: 90vh;
+    padding: 2rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+/* Menu item cards - optimized for touch */
+.menu-item-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu-item-card:active {
+  transform: scale(0.97);
+}
+
+@media (min-width: 768px) {
+  .menu-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Order card animations */
+.order-card {
+  transition: all 0.2s ease;
+}
+
+.order-card:active {
+  transform: scale(0.98);
+}
+
+@media (min-width: 768px) {
+  .order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Quantity controls */
+.qty-btn {
   min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.15s ease;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .qty-btn {
+    min-width: 52px;
+    min-height: 52px;
+  }
+}
+
+/* Smooth scrolling for order lists */
+.order-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.order-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.order-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.order-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Status badge animations */
+.status-badge {
+  animation: pulse-subtle 2s infinite;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Filter button group */
+.filter-group .btn {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Payment amount display */
+.amount-display {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+/* Quick payment buttons */
+.quick-pay-btn {
+  min-height: 56px;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .quick-pay-btn {
+    min-height: 64px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Modal backdrop blur */
+.modal::backdrop {
+  backdrop-filter: blur(4px);
+}
+
+/* Order item in cart */
+.cart-item {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  transition: background-color 0.15s ease;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .cart-item {
+    padding: 1.25rem;
+  }
+}
+
+/* Category filter scrollbar hide on mobile/tablet */
+.category-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Success animation */
+@keyframes success-pop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-icon {
+  animation: success-pop 0.4s ease-out;
+}
+
+/* Sidebar responsive visibility */
+.sidebar-compact {
+  display: none;
+}
+
+.sidebar-full {
+  display: none;
+}
+
+/* Tablet: 768px to 1080px - show compact sidebar */
+@media (min-width: 768px) and (max-width: 1080px) {
+  .sidebar-compact {
+    display: flex;
+  }
+  .sidebar-full {
+    display: none;
+  }
+}
+
+/* Desktop: above 1080px - show full sidebar */
+@media (min-width: 1081px) {
+  .sidebar-compact {
+    display: none;
+  }
+  .sidebar-full {
+    display: flex;
+  }
+}
+
+/* Main content visibility */
+.main-tablet-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .main-tablet-desktop {
+    display: flex;
+  }
+}
+
+/* Mobile drawer visibility */
+.mobile-drawer {
+  display: flex;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .mobile-drawer {
+    display: none;
+  }
 }

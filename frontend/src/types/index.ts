@@ -33,6 +33,8 @@ export interface OrderItem {
   notes?: string;
 }
 
+export type OrderStatus = 'IN_PROGRESS' | 'READY' | 'COMPLETED' | 'CANCELLED';
+
 export interface Order {
   id: string;
   order_number: number;
@@ -44,12 +46,25 @@ export interface Order {
   discount_amount: number;
   sst_amount: number;
   total_amount: number;
-  payment_received: number;
-  change_given: number;
-  payment_method: string;
+  payment_received?: number;
+  change_given?: number;
+  payment_method?: string;
   notes?: string;
   created_at: string;
-  items?: OrderItem[];
+  status: OrderStatus;
+  paid_at?: string;
+  items?: OrderItemDetail[];
+}
+
+export interface OrderItemDetail {
+  id: string;
+  order_id: string;
+  menu_item_id: string;
+  item_name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  notes?: string;
 }
 
 export interface Discount {

@@ -14,6 +14,8 @@ router.post('/create', authenticateToken, requireSuperadmin, async (req, res) =>
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const filename = `backup_${timestamp}.sql`;
         const filepath = path.join(BACKUP_DIR, filename);
+        console.log(filepath);
+        
 
         if (!fs.existsSync(BACKUP_DIR)) {
             fs.mkdirSync(BACKUP_DIR, { recursive: true });

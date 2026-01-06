@@ -6,14 +6,13 @@ import {
   Plus,
   Minus,
   Trash2,
-  CreditCard,
-  Banknote,
   Percent,
   Tag,
   X,
   Search,
+  SendHorizonal,
   CheckCircle,
-  Printer,
+  ShoppingBag,
 } from 'lucide-react';
 
 export default function Cashier() {
@@ -22,21 +21,15 @@ export default function Cashier() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [customerName, setCustomerName] = useState('');
-  const [paymentReceived, setPaymentReceived] = useState('');
   const [discountType, setDiscountType] = useState<'percentage' | 'fixed' | null>(null);
   const [discountValue, setDiscountValue] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState<Discount | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [lastOrder, setLastOrder] = useState<{
-    orderNumber: number;
-    total: number;
-    change: number;
-  } | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [lastOrderNumber, setLastOrderNumber] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -121,8 +114,7 @@ export default function Cashier() {
 
   const discountAmount = calculateDiscount();
   const total = Math.max(0, subtotal - discountAmount);
-  const payment = parseFloat(paymentReceived) || 0;
-  const change = payment - total;
+  const itemCount = orderItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const applyPromoCode = async () => {
     if (!promoCode) return;
@@ -143,13 +135,9 @@ export default function Cashier() {
     setPromoCode('');
   };
 
-  const processOrder = async () => {
+  const createOrder = async () => {
     if (orderItems.length === 0) {
       alert('Please add items to the order');
-      return;
-    }
-    if (payment < total) {
-      alert('Payment amount is insufficient');
       return;
     }
 
@@ -160,19 +148,13 @@ export default function Cashier() {
         items: orderItems,
         discountId: appliedDiscount?.id || null,
         discountAmount,
-        paymentReceived: payment,
-        paymentMethod,
       });
 
-      setLastOrder({
-        orderNumber: res.data.order_number,
-        total: res.data.total_amount,
-        change: res.data.change_given,
-      });
-      setShowReceipt(true);
+      setLastOrderNumber(res.data.order_number);
+      setShowSuccess(true);
     } catch (error) {
-      console.error('Order failed:', error);
-      alert('Failed to process order');
+      console.error('Order creation failed:', error);
+      alert('Failed to create order');
     } finally {
       setProcessing(false);
     }
@@ -181,13 +163,10 @@ export default function Cashier() {
   const clearOrder = () => {
     setOrderItems([]);
     setCustomerName('');
-    setPaymentReceived('');
     clearDiscount();
-    setShowReceipt(false);
-    setLastOrder(null);
+    setShowSuccess(false);
+    setLastOrderNumber(null);
   };
-
-  const quickPaymentAmounts = [10, 20, 50, 100];
 
   if (loading) {
     return (
@@ -198,34 +177,37 @@ export default function Cashier() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-6rem)]">
+    <div className="flex flex-col lg:flex-row gap-4 md:gap-6 h-[calc(100vh-6rem)]">
+      {/* Menu Section */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
+        {/* Search bar */}
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40" size={22} />
             <input
               type="text"
               placeholder="Search menu..."
-              className="input input-bordered w-full pl-10"
+              className="input input-bordered input-lg w-full pl-12 text-lg"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+        {/* Category filters */}
+        <div className="flex gap-2 md:gap-3 mb-4 overflow-x-auto pb-2 category-scroll">
           <button
-            className={`btn btn-sm whitespace-nowrap touch-target ${
+            className={`btn btn-lg whitespace-nowrap flex-shrink-0 ${
               !selectedCategory ? 'btn-primary' : 'btn-outline'
             }`}
             onClick={() => setSelectedCategory(null)}
           >
-            All
+            All Items
           </button>
           {categories.map((cat) => (
             <button
               key={cat.id}
-              className={`btn btn-sm whitespace-nowrap touch-target ${
+              className={`btn btn-lg whitespace-nowrap flex-shrink-0 ${
                 selectedCategory === cat.id ? 'btn-primary' : 'btn-outline'
               }`}
               onClick={() => setSelectedCategory(cat.id)}
@@ -235,26 +217,31 @@ export default function Cashier() {
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {/* Menu grid */}
+        <div className="flex-1 overflow-y-auto order-scroll">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {filteredItems.map((item) => (
               <button
                 key={item.id}
-                className="card bg-base-100 shadow hover:shadow-lg transition-shadow cursor-pointer active:scale-95"
+                className="card bg-base-100 shadow-md menu-item-card text-left"
                 onClick={() => addToOrder(item)}
               >
-                {item.image_url && (
-                  <figure className="h-24 bg-base-200">
+                {item.image_url ? (
+                  <figure className="h-28 md:h-32 bg-base-200">
                     <img
                       src={item.image_url}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />
                   </figure>
+                ) : (
+                  <figure className="h-28 md:h-32 bg-base-200 flex items-center justify-center">
+                    <ShoppingBag size={32} className="text-base-content/20" />
+                  </figure>
                 )}
-                <div className="card-body p-3">
-                  <h3 className="font-medium text-sm line-clamp-2">{item.name}</h3>
-                  <p className="text-primary font-bold">{formatCurrency(item.price)}</p>
+                <div className="card-body p-3 md:p-4">
+                  <h3 className="font-semibold text-base md:text-lg line-clamp-2">{item.name}</h3>
+                  <p className="text-primary font-bold text-lg md:text-xl">{formatCurrency(item.price)}</p>
                 </div>
               </button>
             ))}
@@ -262,79 +249,95 @@ export default function Cashier() {
         </div>
       </div>
 
-      <div className="w-full lg:w-96 flex flex-col bg-base-100 rounded-box shadow-lg">
-        <div className="p-4 border-b border-base-200">
-          <h2 className="font-bold text-lg mb-2">Current Order</h2>
+      {/* Order Panel */}
+      <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col bg-base-100 rounded-2xl shadow-xl">
+        {/* Order header */}
+        <div className="p-4 md:p-5 border-b border-base-200">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-xl md:text-2xl">New Order</h2>
+            {itemCount > 0 && (
+              <span className="badge badge-primary badge-lg">{itemCount} items</span>
+            )}
+          </div>
           <input
             type="text"
             placeholder="Customer name (optional)"
-            className="input input-bordered input-sm w-full"
+            className="input input-bordered input-lg w-full text-lg"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        {/* Order items */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 order-scroll">
           {orderItems.length === 0 ? (
-            <div className="text-center text-base-content/50 py-8">
-              Tap menu items to add
+            <div className="text-center text-base-content/50 py-12">
+              <ShoppingBag size={48} className="mx-auto mb-4 opacity-30" />
+              <p className="text-lg">Tap menu items to add</p>
             </div>
           ) : (
             <div className="space-y-3">
               {orderItems.map((item) => (
                 <div
                   key={item.menuItemId}
-                  className="flex items-center gap-2 p-2 bg-base-200 rounded-lg"
+                  className="cart-item flex items-center gap-3 bg-base-200"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.name}</p>
-                    <p className="text-xs text-base-content/60">
-                      {formatCurrency(item.unitPrice)} x {item.quantity}
+                    <p className="font-semibold text-base md:text-lg truncate">{item.name}</p>
+                    <p className="text-sm text-base-content/60">
+                      {formatCurrency(item.unitPrice)} each
                     </p>
                   </div>
-                  <div className="flex items-center gap-1">
+                  
+                  {/* Quantity controls */}
+                  <div className="flex items-center gap-2">
                     <button
-                      className="btn btn-xs btn-circle btn-ghost"
+                      className="btn btn-circle btn-sm btn-outline qty-btn"
                       onClick={() => updateQuantity(item.menuItemId, -1)}
                     >
-                      <Minus size={14} />
+                      <Minus size={18} />
                     </button>
-                    <span className="w-6 text-center font-medium">{item.quantity}</span>
+                    <span className="w-10 text-center font-bold text-xl">{item.quantity}</span>
                     <button
-                      className="btn btn-xs btn-circle btn-ghost"
+                      className="btn btn-circle btn-sm btn-outline qty-btn"
                       onClick={() => updateQuantity(item.menuItemId, 1)}
                     >
-                      <Plus size={14} />
-                    </button>
-                    <button
-                      className="btn btn-xs btn-circle btn-ghost text-error"
-                      onClick={() => removeFromOrder(item.menuItemId)}
-                    >
-                      <Trash2 size={14} />
+                      <Plus size={18} />
                     </button>
                   </div>
-                  <p className="font-bold text-sm w-20 text-right">
-                    {formatCurrency(item.unitPrice * item.quantity)}
-                  </p>
+                  
+                  <div className="text-right">
+                    <p className="font-bold text-lg">
+                      {formatCurrency(item.unitPrice * item.quantity)}
+                    </p>
+                    <button
+                      className="btn btn-ghost btn-xs text-error"
+                      onClick={() => removeFromOrder(item.menuItemId)}
+                    >
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t border-base-200 space-y-3">
+        {/* Order summary and actions */}
+        <div className="p-4 md:p-5 border-t border-base-200 space-y-4 bg-base-50">
+          {/* Promo code */}
           <div className="flex gap-2">
             <div className="join flex-1">
               <input
                 type="text"
                 placeholder="Promo code"
-                className="input input-bordered input-sm join-item flex-1"
+                className="input input-bordered join-item flex-1"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
                 disabled={!!appliedDiscount}
               />
               <button
-                className="btn btn-sm btn-primary join-item"
+                className="btn btn-primary join-item"
                 onClick={applyPromoCode}
                 disabled={!!appliedDiscount || !promoCode}
               >
@@ -343,25 +346,26 @@ export default function Cashier() {
             </div>
           </div>
 
+          {/* Manual discount */}
           {!appliedDiscount && (
             <div className="flex gap-2">
               <button
-                className={`btn btn-sm flex-1 ${discountType === 'percentage' ? 'btn-secondary' : 'btn-outline'}`}
+                className={`btn flex-1 ${discountType === 'percentage' ? 'btn-secondary' : 'btn-outline'}`}
                 onClick={() => setDiscountType(discountType === 'percentage' ? null : 'percentage')}
               >
-                <Percent size={14} /> %
+                <Percent size={18} /> Percent
               </button>
               <button
-                className={`btn btn-sm flex-1 ${discountType === 'fixed' ? 'btn-secondary' : 'btn-outline'}`}
+                className={`btn flex-1 ${discountType === 'fixed' ? 'btn-secondary' : 'btn-outline'}`}
                 onClick={() => setDiscountType(discountType === 'fixed' ? null : 'fixed')}
               >
-                <Tag size={14} /> RM
+                <Tag size={18} /> Fixed RM
               </button>
               {discountType && (
                 <input
                   type="number"
                   placeholder="Value"
-                  className="input input-bordered input-sm w-20"
+                  className="input input-bordered w-24"
                   value={discountValue}
                   onChange={(e) => setDiscountValue(e.target.value)}
                 />
@@ -369,21 +373,23 @@ export default function Cashier() {
             </div>
           )}
 
+          {/* Applied discount display */}
           {(appliedDiscount || discountAmount > 0) && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-success">
+            <div className="flex items-center justify-between py-2 px-3 bg-success/10 rounded-lg">
+              <span className="text-success font-medium">
                 Discount: -{formatCurrency(discountAmount)}
               </span>
-              <button className="btn btn-xs btn-ghost" onClick={clearDiscount}>
-                <X size={14} />
+              <button className="btn btn-ghost btn-sm btn-circle" onClick={clearDiscount}>
+                <X size={18} />
               </button>
             </div>
           )}
 
           <div className="divider my-2"></div>
 
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
+          {/* Totals */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-lg">
               <span>Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
@@ -393,74 +399,31 @@ export default function Cashier() {
                 <span>-{formatCurrency(discountAmount)}</span>
               </div>
             )}
-            <div className="flex justify-between font-bold text-lg">
+            <div className="flex justify-between font-bold text-2xl pt-2 border-t border-base-300">
               <span>Total</span>
               <span className="text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
 
-          <div className="divider my-2"></div>
-
-          <div className="flex gap-2">
-            <button
-              className={`btn btn-sm flex-1 ${paymentMethod === 'cash' ? 'btn-info' : 'btn-outline'}`}
-              onClick={() => setPaymentMethod('cash')}
+          {/* Action buttons */}
+          <div className="flex gap-3 pt-2">
+            <button 
+              className="btn btn-lg btn-outline flex-1" 
+              onClick={clearOrder}
+              disabled={orderItems.length === 0}
             >
-              <Banknote size={16} /> Cash
-            </button>
-            <button
-              className={`btn btn-sm flex-1 ${paymentMethod === 'card' ? 'btn-info' : 'btn-outline'}`}
-              onClick={() => setPaymentMethod('card')}
-            >
-              <CreditCard size={16} /> Card
-            </button>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {quickPaymentAmounts.map((amount) => (
-              <button
-                key={amount}
-                className="btn btn-sm btn-outline flex-1"
-                onClick={() => setPaymentReceived(amount.toString())}
-              >
-                RM{amount}
-              </button>
-            ))}
-          </div>
-
-          <div className="form-control">
-            <label className="label py-1">
-              <span className="label-text">Payment Received</span>
-            </label>
-            <input
-              type="number"
-              placeholder="0.00"
-              className="input input-bordered"
-              value={paymentReceived}
-              onChange={(e) => setPaymentReceived(e.target.value)}
-            />
-          </div>
-
-          {payment >= total && total > 0 && (
-            <div className="alert alert-success py-2">
-              <span className="font-bold">Change: {formatCurrency(change)}</span>
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <button className="btn btn-outline flex-1" onClick={clearOrder}>
               Clear
             </button>
             <button
-              className="btn btn-primary flex-1"
-              onClick={processOrder}
-              disabled={processing || orderItems.length === 0 || payment < total}
+              className="btn btn-lg btn-primary flex-1"
+              onClick={createOrder}
+              disabled={processing || orderItems.length === 0}
             >
               {processing ? (
-                <span className="loading loading-spinner loading-sm"></span>
+                <span className="loading loading-spinner"></span>
               ) : (
                 <>
-                  <CheckCircle size={18} /> Pay
+                  <SendHorizonal size={22} /> New Order
                 </>
               )}
             </button>
@@ -468,24 +431,22 @@ export default function Cashier() {
         </div>
       </div>
 
-      {showReceipt && lastOrder && (
+      {/* Success Modal */}
+      {showSuccess && lastOrderNumber && (
         <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg text-center">Order Complete!</h3>
-            <div className="py-4 text-center">
-              <p className="text-4xl font-bold text-primary mb-2">
-                #{lastOrder.orderNumber}
-              </p>
-              <p className="text-lg">Total: {formatCurrency(lastOrder.total)}</p>
-              <p className="text-2xl font-bold text-success">
-                Change: {formatCurrency(lastOrder.change)}
-              </p>
+          <div className="modal-box text-center max-w-md">
+            <div className="flex justify-center mb-6">
+              <CheckCircle className="w-24 h-24 text-success success-icon" />
             </div>
-            <div className="modal-action justify-center gap-4">
-              <button className="btn btn-outline">
-                <Printer size={18} /> Print Receipt
-              </button>
-              <button className="btn btn-primary" onClick={clearOrder}>
+            <h3 className="font-bold text-2xl mb-3">Order Created!</h3>
+            <p className="text-6xl font-bold text-primary mb-4">
+              #{lastOrderNumber}
+            </p>
+            <p className="text-lg text-base-content/60 mb-8">
+              The order has been sent to the kitchen.
+            </p>
+            <div className="modal-action justify-center">
+              <button className="btn btn-lg btn-primary btn-wide" onClick={clearOrder}>
                 New Order
               </button>
             </div>
